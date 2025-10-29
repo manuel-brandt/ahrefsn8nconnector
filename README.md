@@ -30,9 +30,7 @@ Internally the bridge keeps a lightweight JSON-RPC client that uses the `fetch` 
    | `MCP_REQUEST_TIMEOUT_MS` | ⛔️ | Overrides the default 30s timeout for MCP requests. |
    | `CORS_ALLOW_ORIGIN` | ⛔️ | Origin(s) allowed to access the API. Defaults to `*`. |
 
-3. **Deploy to Vercel**. The default `vercel.json` configuration (included in this repo) sets `"version": 2` so Vercel uses its modern build system and targets the Node.js 18 runtime that is compatible with the built-in `fetch` used by the bridge.
-
-When connecting to the managed Ahrefs MCP instance, set `MCP_SERVER_AUTH_TOKEN` to the authorization token issued by Ahrefs. The bridge automatically negotiates both classic JSON responses and the server-sent events (SSE) stream emitted by the `https://api.ahrefs.com/mcp/mcp` endpoint, so n8n receives the final JSON-RPC payload without any additional workflow logic.
+3. **Deploy to Vercel**. The default `vercel.json` configuration (included in this repo) sets `"version": 2` so Vercel uses its modern build system and declares the serverless runtime as `nodejs18.x`. That value matches Vercel's published runtime identifiers and avoids errors such as `Function Runtimes must have a valid version`, while still guaranteeing the Node 18-compatible environment that includes the built-in `fetch` used by the bridge.
 
 When connecting to the managed Ahrefs MCP instance, set `MCP_SERVER_AUTH_TOKEN` to the authorization token issued by Ahrefs. The bridge automatically negotiates both classic JSON responses and the server-sent events (SSE) stream emitted by the `https://api.ahrefs.com/mcp/mcp` endpoint, so n8n receives the final JSON-RPC payload without any additional workflow logic.
 
