@@ -1,0 +1,19 @@
+{
+  "name": "ahrefsn8nconnector",
+  "version": "1.0.0",
+  "description": "Vercel bridge that exposes the Ahrefs MCP server to n8n and other HTTP clients.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo 'No automated tests available'"
+  },
+  "keywords": [
+    "ahrefs",
+    "mcp",
+    "vercel",
+    "n8n",
+    "bridge"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs"
+}
