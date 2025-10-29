@@ -13,6 +13,7 @@ class McpClient {
   getHeaders(additional = {}) {
     const headers = {
       "content-type": "application/json",
+      accept: "application/json, text/event-stream",
       ...additional,
     };
 
@@ -21,6 +22,51 @@ class McpClient {
     }
 
     return headers;
+  }
+
+  parseSsePayload(raw) {
+    if (!raw) {
+      return null;
+    }
+
+    const events = raw
+      .split(/\r?\n\r?\n+/)
+      .map((event) => event.trim())
+      .filter(Boolean);
+
+    let lastPayload = null;
+
+    for (const event of events) {
+      const lines = event.split(/\r?\n/);
+      let dataBuffer = "";
+
+      for (const line of lines) {
+        if (line.startsWith(":")) {
+          // Comment line, ignore.
+          continue;
+        }
+
+        if (line.startsWith("data:")) {
+          dataBuffer += line.slice(5).trim();
+        }
+      }
+
+      if (!dataBuffer || dataBuffer === "[DONE]") {
+        continue;
+      }
+
+      try {
+        const parsed = JSON.parse(dataBuffer);
+        if (parsed?.jsonrpc === "2.0") {
+          return parsed;
+        }
+        lastPayload = parsed;
+      } catch (error) {
+        // Ignore JSON parse errors and keep scanning other events.
+      }
+    }
+
+    return lastPayload;
   }
 
   async sendRequest(method, params = undefined) {
@@ -60,11 +106,22 @@ class McpClient {
     const responseText = await response.text();
     let body;
 
+    const contentType = response.headers.get("content-type") ?? "";
+
     try {
       body = JSON.parse(responseText || "{}");
     } catch (error) {
-      log("error", "Invalid JSON returned by MCP server", { responseText });
-      throw new Error("MCP server returned invalid JSON response.");
+      if (contentType.includes("text/event-stream")) {
+        body = this.parseSsePayload(responseText);
+      }
+
+      if (body === null || typeof body === "undefined") {
+        log("error", "Invalid JSON returned by MCP server", {
+          responseText,
+          contentType,
+        });
+        throw new Error("MCP server returned invalid JSON response.");
+      }
     }
 
     if (!response.ok) {
